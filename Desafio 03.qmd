@@ -1,0 +1,56 @@
+---
+title: "Desafio 03"
+author: "Lucca de Luca 223562"
+format: pdf
+editor: visual
+---
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  echo = FALSE,
+  message = FALSE,
+  warning = FALSE
+)
+```
+
+```{r}
+library(arrow)
+library(jsonlite)
+library(tsibble)
+library(dplyr)
+library(knitr)
+library(kableExtra)
+```
+
+## Esse Parquet é um dataset de exemplo, usado mais para testar a leitura do formato do que para análise substantiva.
+
+```{r}
+df_parquet <- read_parquet("C:/Users/lucca/Documents/R/sample1.parquet")
+df_parquet |>
+  head(15) |>
+  kbl(format = "latex", booktabs = TRUE, longtable = TRUE,
+      caption = "Primeiras linhas do Parquet") |>
+  kable_styling(
+    latex_options = c("repeat_header"),
+    position = "center"
+  )
+```
+
+## O conjunto de dados JSON utilizado contém informações sobre livros da área de programação, com ênfase em JavaScript e Git. Cada registro descreve um livro usando informações como: título, autor(es), data de publicação, editora, número de páginas, endereço eletrônico e um breve resumo de conteúdo. É uma base pequena e estruturada que permite organizar e consultar referências técnicas de forma simples e padronizada.
+
+```{r}
+df_json <- fromJSON("C:/Users/lucca/Documents/R/books.json")
+df_json <- df_json$books
+df_json |>
+  kbl(
+    format = "latex",
+    booktabs = TRUE,
+    longtable = TRUE,
+    caption = "Tabela de livros (JSON)"
+  ) |>
+  kable_styling(
+    latex_options = c("hold_position", "repeat_header"),
+    position = "center",
+    font_size = 10
+  ) |>
+  column_spec(3, width = "8cm")
+```

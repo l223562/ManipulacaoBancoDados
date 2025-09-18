@@ -1,0 +1,17 @@
+---
+title: "Desafio 01"
+author: "Lucca de Luca 223562"
+date: "2025-08-07"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+zip_file <- "flights.zip"
+nome_arquivo_csv <- unzip(zip_file, list = TRUE)$Name[1]
+start_time <- Sys.time()
+dados_base <- read.csv(unz(zip_file, nome_arquivo_csv))
+end_time <- Sys.time()
+tempo_base <- end_time - start_time
+print(paste("Tempo (base R):" , tempo_base))
+```
