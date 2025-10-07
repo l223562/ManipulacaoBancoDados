@@ -1,0 +1,200 @@
+---
+title: "Desafio 11"
+author: "Lucca de Luca 223562"
+format: html
+editor: visual
+execute:
+  warning: false
+  error: false
+  message: false
+---
+#1
+```{python}
+import polars as pl
+import os
+
+# Caminho do arquivo CSV
+arquivo = "renda_adulta.csv.gz"
+
+# Verifica se o arquivo existe antes de ler
+if not os.path.exists(arquivo):
+    print(f"Arquivo '{arquivo}' não encontrado. Coloque o CSV na mesma pasta do script.")
+else:
+    # Define os nomes das colunas conforme a ordem fornecida
+    nomes_colunas = [
+        "idade", "trabalho", "peso_final", "educacao", "anos_estudo",
+        "estado_civil", "ocupacao", "relacionamento", "raca", "sexo",
+        "ganho_capital", "perda_capital", "horas_semanais", "pais_origem", "classe"
+    ]
+
+    # Define os tipos das colunas
+    tipos_colunas = {
+        "idade": pl.Int64,
+        "trabalho": pl.Categorical,
+        "peso_final": pl.Int64,
+        "educacao": pl.Categorical,
+        "anos_estudo": pl.Int64,
+        "estado_civil": pl.Categorical,
+        "ocupacao": pl.Categorical,
+        "relacionamento": pl.Categorical,
+        "raca": pl.Categorical,
+        "sexo": pl.Categorical,
+        "ganho_capital": pl.Int64,
+        "perda_capital": pl.Int64,
+        "horas_semanais": pl.Int64,
+        "pais_origem": pl.Categorical,
+        "classe": pl.Categorical
+    }
+
+    # Importa o CSV sem cabeçalho (usando schema_overrides)
+    renda_adulta = pl.read_csv(
+        arquivo,
+        has_header=False,
+        new_columns=nomes_colunas,
+        schema_overrides=tipos_colunas,
+        null_values="?"
+    )
+
+    print("Arquivo importado com sucesso!\n")
+    print(renda_adulta.head())
+    print("\nEsquema das colunas:")
+    print(renda_adulta.schema)
+```
+#2
+```{python}
+tipos_df = pl.DataFrame({
+    "Coluna": list(renda_adulta.schema.keys()),
+    "Tipo": [str(t) for t in renda_adulta.schema.values()]
+})
+
+print(tipos_df)
+```
+#3
+```{python}
+pl.DataFrame({
+    "Linhas": [renda_adulta.height],
+    "Colunas": [renda_adulta.width]
+})
+```
+#4
+```{python}
+contagem = renda_adulta["classe"].value_counts()
+
+print(contagem)
+```
+#5
+```{python}
+renda_longo = renda_adulta.melt(
+    id_vars=[
+        "idade", "trabalho", "peso_final", "educacao", "anos_estudo",
+        "estado_civil", "ocupacao", "relacionamento", "raca", "sexo",
+        "horas_semanais", "pais_origem", "classe"
+    ],
+    value_vars=["ganho_capital", "perda_capital"],
+    variable_name="tipo",
+    value_name="Valor"
+)
+
+print(renda_longo.head())
+```
+#6
+```{python}
+media_horas = (
+    renda_adulta
+    .group_by("classe")
+    .agg(pl.col("horas_semanais").mean().alias("media_horas"))
+)
+
+print(media_horas)
+```
+#7
+```{python}
+contagem_ocupacao = (
+    renda_adulta
+    .group_by("ocupacao")
+    .agg(pl.count().alias("quantidade_pessoas"))
+    .sort("quantidade_pessoas", descending=True)
+)
+
+print(contagem_ocupacao)
+```
+#8
+```{python}
+import polars as pl
+import matplotlib.pyplot as plt
+
+# média de horas por classe
+media_horas = (
+    renda_adulta
+    .group_by("classe")
+    .agg(pl.col("horas_semanais").mean().alias("media_horas"))
+    .with_columns(pl.col("classe").cast(pl.Utf8))  # garante strings p/ o plot
+    .sort("classe")
+)
+
+# listas para o matplotlib
+classes = media_horas.get_column("classe").to_list()
+medias  = media_horas.get_column("media_horas").to_list()
+
+# gráfico
+plt.figure(figsize=(6,4))
+plt.bar(classes, medias)
+plt.xlabel("Classe Salarial")
+plt.ylabel("Média de Horas Semanais")
+plt.title("Média de Horas Trabalhadas por Classe Salarial")
+plt.grid(axis="y", linestyle="--", alpha=0.6)
+plt.tight_layout()
+plt.show()
+```
+#Desafio
+```{python}
+# 1. distribuição por gênero
+dist_sexo = renda_adulta.group_by("sexo").agg(pl.count().alias("n Pessoas"))
+print(dist_sexo)
+
+# 2. proporção que ganham >50K por gênero
+# supondo que a coluna classe tenha valores como ">50K"
+prop_acima = (
+    renda_adulta
+    .filter(pl.col("classe") == ">50K")
+    .group_by("sexo")
+    .agg(pl.count().alias("n_acima"))
+)
+
+# juntar com total para calcular proporção
+prop_total = (
+    renda_adulta
+    .group_by("sexo")
+    .agg(pl.count().alias("n_total"))
+)
+
+prop = prop_acima.join(prop_total, on="sexo", how="right").with_columns(
+    (pl.col("n_acima") / pl.col("n_total")).alias("pct_acima")
+)
+print(prop)
+
+# 3. média de horas trabalhadas por gênero
+media_horas_sexo = (
+    renda_adulta
+    .group_by("sexo")
+    .agg(pl.col("horas_semanais").mean().alias("media_horas"))
+)
+print(media_horas_sexo)
+
+# 4. (Opcional) média de horas só entre os que ganham >50K
+media_horas_altos = (
+    renda_adulta
+    .filter(pl.col("classe") == ">50K")
+    .group_by("sexo")
+    .agg(pl.col("horas_semanais").mean().alias("media_horas_altos"))
+)
+print(media_horas_altos)
+```
+
+```{python}
+from datetime import datetime
+data_execucao = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+
+print(f"Arquivo compilado em: {data_execucao}")
+```
+
