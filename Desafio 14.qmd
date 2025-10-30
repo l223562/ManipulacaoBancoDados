@@ -1,0 +1,97 @@
+---
+title: "Desafio 14"
+author: "Lucca de Luca 223562"
+format: html
+editor: visual
+---
+
+```{r}
+# Carregar pacotes
+library(ggplot2)
+
+# Ler o arquivo CSV
+diamonds <- read.csv("diamonds.csv.gz")
+
+# Visualizar as primeiras linhas
+head(diamonds)
+
+# Criar o gráfico de dispersão com linha de tendência
+ggplot(diamonds, aes(x = carat, y = price)) +
+  geom_point(alpha = 0.4, color = "steelblue") +      # pontos com transparência
+  geom_smooth(method = "lm", color = "red", se = FALSE, linewidth = 1.2) +  # linha de regressão linear
+  labs(
+    title = "Relação entre Peso (Carat) e Preço do Diamante",
+    x = "Peso (Carat)",
+    y = "Preço (USD)"
+  ) +
+  theme_minimal(base_size = 14) +                     # estilo limpo
+  theme(
+    plot.title = element_text(face = "bold", hjust = 0.5)  # título centralizado e em negrito
+  )
+
+```
+Ações para garantir a qualidade do gráfico:
+Limpeza visual: usei transparência (alpha=0.4) para evitar sobreposição e facilitar a leitura dos pontos, já que há milhares de diamantes.
+
+Linha de tendência: adicionei uma linha de regressão (em vermelho) para destacar a tendência geral entre as variáveis.
+
+Escala e rótulos claros: rótulos descritivos e título informativo foram aplicados para garantir interpretação imediata.
+
+Estilo padronizado: apliquei o tema whitegrid e fontes maiores para legibilidade.
+
+Achados:
+O gráfico revela uma forte relação positiva entre o peso (carat) e o preço dos diamantes — quanto maior o peso, maior tende a ser o preço. Contudo, a relação não é perfeitamente linear: observa-se que os preços crescem de forma mais acentuada a partir de 1 carat, indicando um aumento exponencial do valor para pedras maiores. Isso sugere que o mercado valoriza desproporcionalmente diamantes mais pesados, possivelmente por serem mais raros.
+
+```{r}
+# Ler o arquivo CSV
+diamonds <- read.csv("diamonds.csv.gz")
+
+# Visualização: relação carat x price separada por corte
+ggplot(diamonds, aes(x = carat, y = price, color = cut)) +
+  geom_point(alpha = 0.4) +                                # pontos com transparência
+  geom_smooth(method = "lm", se = FALSE, linewidth = 1.1) + # linha de tendência por corte
+  labs(
+    title = "Relação entre Peso (Carat) e Preço por Tipo de Corte",
+    x = "Peso (Carat)",
+    y = "Preço (USD)",
+    color = "Corte"
+  ) +
+  theme_minimal(base_size = 14) +
+  theme(
+    plot.title = element_text(face = "bold", hjust = 0.5)
+  )
+
+```
+A relação positiva entre peso e preço permanece em todos os tipos de corte, mas a intensidade dessa relação varia. Cortes de melhor qualidade, como Ideal e Premium, mostram preços mais altos para o mesmo peso — indicando que o corte influencia fortemente o valor do diamante. Em contraste, cortes como Fair e Good apresentam uma inclinação mais suave, ou seja, o aumento de preço é menor conforme o peso cresce.
+
+```{r}
+# Ler o arquivo CSV
+diamonds <- read.csv("diamonds.csv.gz")
+
+# Visualização combinando corte, cor e clareza
+ggplot(diamonds, aes(x = carat, y = price, color = clarity)) +
+  geom_point(alpha = 0.3, size = 1) +
+  geom_smooth(method = "lm", se = FALSE, linewidth = 1) +
+  facet_grid(cut ~ color) +  # cria painéis para cada combinação de corte (linhas) e cor (colunas)
+  labs(
+    title = "Relação entre Peso (Carat) e Preço por Corte, Cor e Clareza",
+    x = "Peso (Carat)",
+    y = "Preço (USD)",
+    color = "Clareza"
+  ) +
+  theme_minimal(base_size = 12) +
+  theme(
+    plot.title = element_text(face = "bold", hjust = 0.5),
+    strip.text = element_text(face = "bold")
+  )
+
+```
+
+A principal dificuldade é visualizar tudo de forma legível, já que são muitas combinações possíveis, isso gera um gráfico bem denso, exigindo ajustes para não virar um caos visual. Além disso, os dados não são distribuídos de forma uniforme — alguns cortes e clarezas são mais raros, o que pode distorcer a percepção da tendência em certos painéis.
+
+Resumindo:
+A relação entre peso e preço continua positiva em todas as configurações, mas não é igual entre os grupos.
+
+Diamantes com melhor corte, cor e clareza (por exemplo, Ideal – D – IF) mostram crescimento mais acentuado no preço à medida que o peso aumenta.
+
+Já os diamantes de qualidade inferior têm preços proporcionalmente menores mesmo em pesos altos.
